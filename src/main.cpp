@@ -1,3 +1,4 @@
+
 #include <Arduino.h>
 #include "iotUpdater.h"
 #include "credentials.h"
@@ -10,7 +11,7 @@ extern "C" {
 
 }
 
-#define CODE_VERSION "V1.0.4"
+#define CODE_VERSION "V1.0.5"
 // FORWARD DECLARATIONS
 
 bool setup_wifi();
@@ -109,12 +110,12 @@ boolean mqttReconnect(){
       char str[30];
       strcpy(str, "The Garage is (re)connected ");
       strcat(str, CODE_VERSION);
-      mqttClient.publish("/home/garage/hello", str);
+      mqttClient.publish("garage/hello", str);
       snprintf (str, 50, "%i", mqttReconnectCounter++);
-      mqttClient.publish("/home/garage/reconnect", str);
-      mqttClient.subscribe("/home/garage/door/control");
-      mqttClient.subscribe("/home/garage/status");
-      mqttClient.subscribe("/home/garage/ECU/reboot");
+      mqttClient.publish("stat/garage/reconnect", str);
+      mqttClient.subscribe("cmnd/garage/door");
+      mqttClient.subscribe("cmnd/garage/status");
+      mqttClient.subscribe("cmnd/garage/reboot");
 
     }
   }
@@ -137,19 +138,19 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   snprintf (p, 50, "%s",payload);
   Serial.println(t);
 
-  if(strcmp(t, "/home/garage/door/control") == 0){
+  if(strcmp(t, "cmnd/garage/door") == 0){
     if(strcmp(p, "Open") == 0){
       garage->open();
     } else {
       garage->close();
     }
 
-  } else   if(strcmp(t, "/home/garage/status") == 0){
-    mqttClient.publish("/home/garage/temp",  garage->getTemp(buffer), true);
-    mqttClient.publish("/home/garage/humid", garage->getHumid(buffer), true);
-    mqttClient.publish("/home/garage/door/state", garage->getEvent(buffer), true);
+  } else   if(strcmp(t, "cmnd/garage/status") == 0){
+    mqttClient.publish("stat/garage/temp",  garage->getTemp(buffer), true);
+    mqttClient.publish("stat/garage/humid", garage->getHumid(buffer), true);
+    mqttClient.publish("stat/garage/doorstate", garage->getEvent(buffer), true);
 
-  } else if (strcmp(t, "/home/garage/ECU/reboot") == 0) {
+  } else if (strcmp(t, "cmnd/garage/reboot") == 0) {
     ESP.reset();
   }
 }
@@ -158,7 +159,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 void eventListener(){
   // Something wonderful has happened
   char eventStr[50];
-  mqttClient.publish("/home/garage/door/event", garage->getEvent(eventStr), true);
+  mqttClient.publish("stat/garage/doorstate", garage->getEvent(eventStr), true);
 }
 
 void tack() {

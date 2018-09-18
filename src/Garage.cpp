@@ -1,3 +1,6 @@
+
+#include <stdio.h>
+#include <stdlib.h>
 #include <Arduino.h>
 #include <Ticker.h>
 #include "Garage.h"
@@ -98,10 +101,12 @@ Garage::Garage() {}
 
 void Garage::relayOff() {
   digitalWrite(MOTOR, LOW);
+  //digitalWrite(LED_BUILTIN, HIGH);
 }
 
 void Garage::relayOn() {
   digitalWrite(MOTOR, HIGH);
+  //digitalWrite(LED_BUILTIN, LOW);
 }
 
 void Garage::garageCntrl(bool up) {

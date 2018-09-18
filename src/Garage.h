@@ -106,7 +106,7 @@ private:
 
 
   // Variables
-  Ticker *pTimer = new Ticker(Wrapper_To_Call_relayOff, 200, 1, MILLIS);
+  Ticker *pTimer = new Ticker(Wrapper_To_Call_relayOff, 300, 1, MILLIS);
   Ticker *pTimer2 = new Ticker(Wrapper_To_Call_updateSensors, 60000 , 0, MILLIS);
   Ticker *pTimer3 = new Ticker(Wrapper_To_Call_updateState, 200 , 0, MILLIS);
   Ultrasonic *pSonic = new Ultrasonic(ULTRATRIG, ULTRAECHO);
