@@ -17,7 +17,9 @@ Garage* Garage::getInstance() {
     instance->pDht->begin();
     instance->pTimer2->start();
     instance->pTimer3->start();
-    instance->call = NULL;
+    instance->doorstateCall = NULL;
+    instance->sensorCall = NULL;
+    
 
     pinMode(MOTOR, OUTPUT);
     pinMode(ULTRATRIG, OUTPUT);
@@ -42,9 +44,14 @@ void Garage::close() {
 
 
 
-void Garage::setCallback(fptr callback){
-  call = callback;
+void Garage::setDoorStateCallback(fptr callback){
+  doorstateCall = callback;
 }
+void Garage::setSensorCallback(fptr callback){
+  sensorCall = callback;
+}
+
+
 
 // static wrapper-function to be able to callback the member function Display()
 void Garage::Wrapper_To_Call_relayOff() {
@@ -119,6 +126,8 @@ void Garage::updateSensors() {
   temp = avg(rgTemp, TEMPELEMENTS, pDht->readTemperature(), lastTempIndex);
   humid = avg(rgHumid, TEMPELEMENTS, pDht->readHumidity(), lastTempIndex);
   lastTempIndex = ++lastTempIndex%TEMPELEMENTS;
+
+  if(sensorCall != NULL) sensorCall();
 }
 
 void Garage::updateState(){
@@ -146,7 +155,7 @@ void Garage::updateState(){
 
   if(lastEvent != event){
     lastEvent = event;
-    if(call != NULL) call();
+    if(doorstateCall != NULL) doorstateCall();
   }
 }
 

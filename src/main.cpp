@@ -11,12 +11,13 @@ extern "C" {
 
 }
 
-#define CODE_VERSION "V1.0.5"
+#define CODE_VERSION "V1.1"
 // FORWARD DECLARATIONS
 
 bool setup_wifi();
 void tack();
-void eventListener();
+void doorstateEventListener();
+void sensorEventListener();
 boolean mqttReconnect();
 
 // VARIABLES
@@ -48,7 +49,8 @@ void setup() {
 
   setup_wifi();
 
-  garage->setCallback(eventListener);
+  garage->setDoorStateCallback(doorstateEventListener);
+  garage->setSensorCallback(sensorEventListener);
 
   timer1.start();
 
@@ -110,11 +112,13 @@ boolean mqttReconnect(){
       char str[30];
       strcpy(str, "The Garage is (re)connected ");
       strcat(str, CODE_VERSION);
-      mqttClient.publish("garage/hello", str);
+      mqttClient.publish("stat/garage/hello", str);
       snprintf (str, 50, "%i", mqttReconnectCounter++);
       mqttClient.publish("stat/garage/reconnect", str);
       mqttClient.subscribe("cmnd/garage/door");
-      mqttClient.subscribe("cmnd/garage/status");
+      mqttClient.subscribe("cmnd/garage/temp");
+      mqttClient.subscribe("cmnd/garage/humid");
+      mqttClient.subscribe("cmnd/garage/doorstate");
       mqttClient.subscribe("cmnd/garage/reboot");
 
     }
@@ -140,26 +144,38 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
   if(strcmp(t, "cmnd/garage/door") == 0){
     if(strcmp(p, "Open") == 0){
-      garage->open();
+       garage->open();
     } else {
-      garage->close();
+       garage->close();
     }
 
-  } else   if(strcmp(t, "cmnd/garage/status") == 0){
-    mqttClient.publish("stat/garage/temp",  garage->getTemp(buffer), true);
-    mqttClient.publish("stat/garage/humid", garage->getHumid(buffer), true);
-    mqttClient.publish("stat/garage/doorstate", garage->getEvent(buffer), true);
+  } else   if(strcmp(t, "cmnd/garage/temp") == 0){
+     mqttClient.publish("stat/garage/temp",  garage->getTemp(buffer), true);
+
+  } else if (strcmp(t, "cmnd/garage/humid") == 0) {
+     mqttClient.publish("stat/garage/humid", garage->getHumid(buffer), true);
+
+  } else if (strcmp(t, "cmnd/garage/doorstate") == 0) {
+     mqttClient.publish("stat/garage/doorstate", garage->getEvent(buffer), true);
 
   } else if (strcmp(t, "cmnd/garage/reboot") == 0) {
-    ESP.reset();
+     ESP.reset();
   }
 }
 
 
-void eventListener(){
+void doorstateEventListener(){
   // Something wonderful has happened
   char eventStr[50];
   mqttClient.publish("stat/garage/doorstate", garage->getEvent(eventStr), true);
+}
+
+void sensorEventListener(){
+  // Something wonderful has happened
+  char eventStr[50];
+  mqttClient.publish("stat/garage/temp", garage->getTemp(eventStr), true);
+  mqttClient.publish("stat/garage/humid", garage->getHumid(eventStr), true);
+  
 }
 
 void tack() {

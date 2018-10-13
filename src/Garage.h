@@ -88,7 +88,9 @@ public:
    * The callback will be called when a new door event is detected
    * @param callback [description]
    */
-  void setCallback(fptr callback);
+  void setDoorStateCallback(fptr callback);
+  void setSensorCallback(fptr callback);
+
 
 
 private:
@@ -122,7 +124,8 @@ private:
   int rgSonic[SONICELEMENTS];
   int lastSonicIndex = 0;
 
-  fptr call;
+  fptr doorstateCall;
+  fptr sensorCall;
 
 };
 
