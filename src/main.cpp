@@ -1,6 +1,6 @@
 
 #include <Arduino.h>
-#include "iotUpdater.h"
+#include "OTA.h"
 #include "credentials.h"
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
@@ -23,14 +23,12 @@ boolean mqttReconnect();
 // VARIABLES
 Garage* garage = Garage::getInstance();
 
-Ticker timer1(tack, 1000,0, MILLIS);
+Ticker timer1(tack, 5000,0, MILLIS);
 
-char ssid[] = SSIDNAME;
-char password[] = PASSWORD;
 
 WiFiClient espClient;
 
-IPAddress mqttServer(192, 168, 1, 200);
+IPAddress mqttServer(192, 168, 1, 222);
 void mqttCallback(char* topic, byte* payload, unsigned int length);
 PubSubClient mqttClient(mqttServer, 1883, mqttCallback, espClient);
 
@@ -56,7 +54,7 @@ void setup() {
 
   mqttReconnect();
 
-  iotUpdater(true);
+  setupOTA("garagecontroller");
 }
 
 void loop() {
@@ -71,6 +69,7 @@ void loop() {
 
   timer1.update();
   garage->update();
+  ArduinoOTA.handle();
 }
 
 
@@ -86,15 +85,22 @@ bool setup_wifi() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
 
+  int attempt = 30;
 
-  if(WiFi.status() == WL_CONNECTED){
+  while (attempt)
+  {
+    if (WiFi.status() == WL_CONNECTED)
+    {
 
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-  return true;
+      Serial.println("WiFi connected");
+      Serial.println("IP address: ");
+      Serial.println(WiFi.localIP());
+      return true;
+    }
+    delay(500);
+    attempt--;
   }
-
+  
 return false;
 }
 
@@ -160,7 +166,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
   } else if (strcmp(t, "cmnd/garage/reboot") == 0) {
      ESP.reset();
-  }
+  } 
 }
 
 

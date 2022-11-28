@@ -3,7 +3,7 @@
 
 #include <Ticker.h>
 #include <Ultrasonic.h>
-#include <DHT.h>
+#include "DHTStable.h"
 
 #define DHTTYPE           DHT22     // DHT 22 (AM2302)
 #define TEMPELEMENTS              1
@@ -12,8 +12,6 @@
 #define ULTRATRIG 2 // D4
 #define MOTOR 5 // D1
 #define DHTPIN 4 // D2
-
-typedef void (*fptr)();
 
 enum event_t {INIT, DOOR_OPEN, DOOR_CLOSED_CAR_IN, DOOR_CLOSED_CAR_OUT};
 
@@ -112,7 +110,8 @@ private:
   Ticker *pTimer2 = new Ticker(Wrapper_To_Call_updateSensors, 60000 , 0, MILLIS);
   Ticker *pTimer3 = new Ticker(Wrapper_To_Call_updateState, 200 , 0, MILLIS);
   Ultrasonic *pSonic = new Ultrasonic(ULTRATRIG, ULTRAECHO);
-  DHT *pDht = new DHT(DHTPIN, DHTTYPE);
+  DHTStable *pDht =  new DHTStable();
+  
   event_t lastEvent = INIT;
   float temp;
   float humid;

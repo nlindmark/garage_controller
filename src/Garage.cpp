@@ -14,9 +14,12 @@ Garage* Garage::getInstance() {
   if (instance == 0)
   {
     instance = new Garage();
-    instance->pDht->begin();
+    instance->pDht->reset();
+    
     instance->pTimer2->start();
     instance->pTimer3->start();
+
+    
     instance->doorstateCall = NULL;
     instance->sensorCall = NULL;
     
@@ -123,17 +126,21 @@ void Garage::garageCntrl(bool up) {
 
 void Garage::updateSensors() {
   // Check temp and humidity
-  temp = avg(rgTemp, TEMPELEMENTS, pDht->readTemperature(), lastTempIndex);
-  humid = avg(rgHumid, TEMPELEMENTS, pDht->readHumidity(), lastTempIndex);
-  lastTempIndex = ++lastTempIndex%TEMPELEMENTS;
+  int chk = pDht->read2302(DHTPIN);
+  if(chk == DHTLIB_OK){
+    temp = avg(rgTemp, TEMPELEMENTS, pDht->getTemperature(), lastTempIndex);
+    humid = avg(rgHumid, TEMPELEMENTS, pDht->getHumidity(), lastTempIndex);
+    lastTempIndex = ++lastTempIndex%TEMPELEMENTS;
 
-  if(sensorCall != NULL) sensorCall();
+    if(sensorCall != NULL) sensorCall();
+
+  }
 }
 
 void Garage::updateState(){
 
   event_t event;
-  uint32_t distance = pSonic->distanceRead();
+  uint32_t distance = pSonic->read();
 
   // Sense checking
   if(distance < 0 || distance > 300) {
